@@ -1,0 +1,9 @@
+googletest/
+
+**/build/
+**/bin/
+**/*.log
+
+**/.ycm_extra_conf.py
+**/*.swp
+**/.vscode/
