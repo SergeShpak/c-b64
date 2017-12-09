@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "b64_decode.h"
+#include "b64_c.h"
 #include "gtest/gtest.h"
 #include "predicates.hpp"
 #include "tests/test_b64_decode.hpp"
@@ -242,4 +242,29 @@ TEST_F(TestDecode, NormalTests) {
     EXPECT_TRUE(ArraysMatch(tc->expected_decoded, decoded_buf, decode_buf_len));
     free(decoded_buf);
   }
+}
+
+TEST_F(TestDecode, NullArgsTests) {
+  std::string b64_str("Zm9vYmFy");
+  const char *b64_c_str = b64_str.c_str();
+  unsigned char *decoded_buf = (unsigned char *)malloc(7);
+  size_t actual_decode_len;
+  int status = b64_decode(NULL, decoded_buf, &actual_decode_len);
+  EXPECT_NE(0, status);
+  status = b64_decode(b64_c_str, NULL, &actual_decode_len);
+  EXPECT_NE(0, status);
+  status = b64_decode(NULL, NULL, &actual_decode_len);
+  EXPECT_NE(0, status);
+  status = b64_decode(b64_c_str, decoded_buf, NULL);
+  EXPECT_EQ(0, status);
+  const char *expected_decoded_buf = "foobar";
+  status = b64_decode(NULL, decoded_buf, NULL);
+  EXPECT_NE(0, status);
+  EXPECT_TRUE(
+      ArraysMatch((uint8_t *)expected_decoded_buf, (uint8_t *)decoded_buf, 7));
+  status = b64_decode(b64_c_str, NULL, NULL);
+  EXPECT_NE(0, status);
+  status = b64_decode(NULL, NULL, NULL);
+  EXPECT_NE(0, status);
+  free(decoded_buf);
 }
