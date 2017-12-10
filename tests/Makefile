@@ -1,3 +1,6 @@
+# Change this variable to the path of your GTest sources
+GOOGLE_TEST_DIR := ../googletest
+
 CXX := g++
 
 BUILD_DIR := build
@@ -6,8 +9,8 @@ OUT_NAME := tests
 OUT_PATH := $(BIN_DIR)/$(OUT_NAME)
 INCLUDE_DIR := include
 
-GTEST_INCLUDE := $(abspath ../googletest/googletest/include)
-GTEST_LIB_DIR := $(abspath ../googletest/build/googlemock/gtest)
+GTEST_INCLUDE := $(abspath $(GOOGLE_TEST_DIR)/googletest/include)
+GTEST_LIB_DIR := $(abspath $(GOOGLE_TEST_DIR)/build/googlemock/gtest)
 GTEST_LIB := libgtest.a
 LINK_FLAGS := -L$(GTEST_LIB_DIR) -lgtest -pthread
 
