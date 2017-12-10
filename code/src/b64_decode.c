@@ -33,12 +33,15 @@ int b64_get_decode_len(const char *encoded_str, size_t *decode_len) {
 
 int b64_decode(const char *encoded_str,
     unsigned char *decoding_buf, size_t *decoded_len) {
-  unsigned char group[3];
+  if (!encoded_str) return -1; 
+  if (!decoding_buf) return -2;
+  if (decoded_len) *decoded_len = 0;
+  
   size_t encoded_len = strlen(encoded_str);
-  *decoded_len = 0;
-  if (encoded_len == 0) {
-    return 0; 
-  }
+  if (encoded_len == 0) return 0;
+
+  unsigned char group[3];
+  size_t decoded_len_inner = 0;
   const char *encoded_offset = encoded_str;
   while (encoded_offset != encoded_str + encoded_len - 4) {
     group[0] =
@@ -51,29 +54,36 @@ int b64_decode(const char *encoded_str,
       (decode_lookup(encoded_offset[2]) << 6)
       | decode_lookup((encoded_offset[3]));
     
-    memcpy(decoding_buf + *decoded_len, group, 3);
-    *decoded_len += 3;
+    memcpy(decoding_buf + decoded_len_inner, group, 3);
+    decoded_len_inner += 3;
     encoded_offset += 4;
   }
-  unsigned char *decoding_tail = decoding_buf + *decoded_len;
+  unsigned char *decoding_tail = decoding_buf + decoded_len_inner;
+
+  // this cycle is just to be able to break execution, without using goto
+  do {
   decoding_tail[0] =
       (decode_lookup(encoded_offset[0]) << 2)
       | (decode_lookup(encoded_offset[1]) >> 4);
   if ('=' == encoded_offset[2]) {
-    *decoded_len += 1;
-    return 0;
+    decoded_len_inner += 1;
+    break;
   }
   decoding_tail[1] =
       (decode_lookup(encoded_offset[1]) << 4)
       | (decode_lookup(encoded_offset[2]) >> 2);
   if ('=' == encoded_offset[3]) {
-    *decoded_len += 2;
-    return 0; 
+    decoded_len_inner += 2;
+    break;
   }
   decoding_tail[2] =
     (decode_lookup(encoded_offset[2]) << 6)
     | decode_lookup((encoded_offset[3]));
-  *decoded_len += 3;
+  decoded_len_inner += 3;
+  } while(0);
+  if (decoded_len) {
+    *decoded_len = decoded_len_inner; 
+  } 
   return 0;
 }
 
