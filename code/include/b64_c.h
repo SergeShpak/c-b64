@@ -15,7 +15,7 @@ int b64_encode(const unsigned char *data, const size_t data_len,
 
 int b64_is_valid(const char *encoded_str);
 
-int b64_get_decode_len(const char *encoded_str, size_t *decode_len);
+int b64_get_decoding_len(const char *encoded_str, size_t *decoding_len);
 
 int b64_decode(const char *encoded_str,
     unsigned char *decoding_buf, size_t *decoded_len);
