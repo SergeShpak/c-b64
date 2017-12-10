@@ -60,6 +60,11 @@ TEST_F(TestGetEncodingLen, NormalTests) {
   }
 }
 
+TEST_F(TestGetEncodingLen, NullArgsTests) {
+  int status = b64_get_encoding_len(10, NULL);
+  EXPECT_NE(0, status);
+}
+
 TestEncode::TestCase::TestCase(
     std::vector<unsigned char> data, std::string expected_encoding) {
   this->data_len = data.size();
@@ -119,6 +124,23 @@ void TestEncode::AddNormalTestCases() {
   expected_encoding = std::string("");
   tc = new TestCase(data, expected_encoding);
   normal_test_cases.push_back(tc);
+  const char *data_str =
+      "Man is distinguished, not only by his reason, but by this singular"
+      " passion from other animals, which is a lust of the mind, that"
+      " by a perseverance of delight in the continued and indefatigable"
+      " generation of knowledge, exceeds the short vehemence of any"
+      " carnal pleasure.";
+  data = std::vector<unsigned char>((unsigned char *)data_str,
+      (unsigned char *)(data_str + strlen(data_str)));
+  expected_encoding = std::string(
+      "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0"
+      "aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx"
+      "1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB"
+      "0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGd"
+      "lLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4"
+      "=");
+  tc = new TestCase(data, expected_encoding);
+  normal_test_cases.push_back(tc);
 }
 
 void TestEncode::ReleaseTestCasesVec(
@@ -153,4 +175,19 @@ TEST_F(TestEncode, NormalTests) {
         (unsigned char *)encoding_buf, encoding_buf_len));
     free(encoding_buf);
   }
+}
+
+TEST_F(TestEncode, NullArgsTests) {
+  const char *data = "foobar";
+  char *encoding_buf = (char *)malloc(9);
+  if (!encoding_buf) {
+    throw new std::runtime_error("Malloc failed");
+  }
+  int status = b64_encode(NULL, 6, encoding_buf);
+  EXPECT_NE(0, status);
+  status = b64_encode((const unsigned char *)data, 6, NULL);
+  EXPECT_NE(0, status);
+  status = b64_encode(NULL, 6, NULL);
+  EXPECT_NE(0, status);
+  free(encoding_buf);
 }
