@@ -1,14 +1,3 @@
-/**
- *  \file b64_decode.c
- *  \brief B64 decoding.
- *  \author Sergey Shpak
- *  \date 2017
- *  
- *  Decoding b64-encoded strings.
- *
- */
-
-
 #include <stddef.h>
 #include <string.h>
 
@@ -17,9 +6,6 @@ static unsigned char decode_lookup(const char b64_char);
 static char is_in_b64_range(const char c);
 
 
-/**
- * \brief Check validity
- */
 int b64_is_valid(const char *encoded_str) {
   if (!encoded_str) return 0;
   size_t encoded_str_len = strlen(encoded_str);

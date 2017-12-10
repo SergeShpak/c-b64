@@ -11,11 +11,11 @@ static const char encode_lookup_table[] = {
 };
 
 
-int b64_get_encoding_len(const size_t data_len, size_t *encoding_buf_len) {
+int b64_get_encoding_len(const size_t n, size_t *encoding_buf_len) {
   if (!encoding_buf_len) return -1;
 
-  *encoding_buf_len = data_len / 3;
-  *encoding_buf_len += data_len % 3 == 0 ? 0 : 1;
+  *encoding_buf_len = n / 3;
+  *encoding_buf_len += n % 3 == 0 ? 0 : 1;
   (*encoding_buf_len) *= 4;
   // a byte for \0 ending
   (*encoding_buf_len)++;
