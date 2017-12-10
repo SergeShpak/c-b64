@@ -3,6 +3,7 @@ googletest/
 **/build/
 **/bin/
 **/*.log
+code/doc/
 
 **/.ycm_extra_conf.py
 **/*.swp
