@@ -3,6 +3,7 @@
 
 
 static unsigned char decode_lookup(const char b64_char);
+static char is_in_b64_range(const char c);
 
 
 int b64_is_valid(const char *encoded_str) {
@@ -10,28 +11,24 @@ int b64_is_valid(const char *encoded_str) {
   size_t encoded_str_len = strlen(encoded_str);
   if (0 == encoded_str_len) return 1;
   if (0 != encoded_str_len % 4) return 0;
+
+  // Pointer to the null terminator of encoded_str
   const char *encoded_str_out_ptr = encoded_str + encoded_str_len;
   const char *encoded_str_offset = encoded_str_out_ptr;
+  // Checking padding
   do {
     encoded_str_offset--;
-    if (!
-        (((*encoded_str_offset) >= 'A' && (*encoded_str_offset) <= 'Z')
-        || ((*encoded_str_offset) >= 'a' && (*encoded_str_offset) <= 'z')
-        || ((*encoded_str_offset) >= '1' && (*encoded_str_offset) <= '9')
-        || (*encoded_str_offset) == '+' || (*encoded_str_offset) == '/'
-        || (*encoded_str_offset) == '=')) return 0;
+    if (!is_in_b64_range(*encoded_str_offset)
+        && (*encoded_str_offset != '=')) return 0; 
   } while (encoded_str_offset != encoded_str_out_ptr - 2);
+  // Checking body
   do {
     encoded_str_offset--;
-    if (!
-        (((*encoded_str_offset) >= 'A' && (*encoded_str_offset) <= 'Z')
-        || ((*encoded_str_offset) >= 'a' && (*encoded_str_offset) <= 'z')
-        || ((*encoded_str_offset) >= '1' && (*encoded_str_offset) <= '9')
-        || (*encoded_str_offset) == '+'
-        || (*encoded_str_offset) == '/')) return 0;
+    if (!is_in_b64_range(*encoded_str_offset)) return 0;
   } while (encoded_str_offset != encoded_str);
   return 1;
 }
+
 
 int b64_get_decoding_len(const char *encoded_str, size_t *decoding_len) {
   if (!encoded_str) return -1; 
@@ -88,7 +85,7 @@ int b64_decode(const char *encoded_str,
   }
   unsigned char *decoding_tail = decoding_buf + decoded_len_inner;
 
-  // this cycle is just to be able to break execution, without using goto
+  // this cycle is here just for breaking execution, without using goto
   do {
   decoding_tail[0] =
       (decode_lookup(encoded_offset[0]) << 2)
@@ -116,6 +113,10 @@ int b64_decode(const char *encoded_str,
 }
 
 
+/******************************************************************************
+ * Static functions
+ * ***************************************************************************/
+
 unsigned char decode_lookup(const char b64_char) {
   switch (b64_char) {
     case '+':
@@ -132,3 +133,15 @@ unsigned char decode_lookup(const char b64_char) {
   // if b64_char is a letter
   return b64_char - 71;
 }
+
+char is_in_b64_range(const char c) {
+  if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+      || (c >= '1' && c <= '9') || c == '+' || c == '/') return 1;
+  return 0;
+}
+
+/******************************************************************************
+ * End of static functions section
+ * ***************************************************************************/
+
+

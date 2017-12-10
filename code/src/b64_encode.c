@@ -38,12 +38,14 @@ int b64_encode(const unsigned char *data, const size_t data_len,
   const unsigned char *data_offset = data;
   char *encoding_buf_offset = encoding_buf;
   while (data_offset < (data + data_len - 3)) {
-    group[0] = encode_lookup_table[(data_offset[0] >> 2)];
-    group[1] = encode_lookup_table[
-      ((data_offset[0] << 4) & 0x30) | (data_offset[1] >> 4)];
-    group[2] = encode_lookup_table[
-      ((data_offset[1] << 2) & 0x3c) | (data_offset[2] >> 6)];
-    group[3] = encode_lookup_table[data_offset[2] & 0x3f];
+    group[0] = (data_offset[0] >> 2)
+      [encode_lookup_table];
+    group[1] = (((data_offset[0] << 4) & 0x30) | (data_offset[1] >> 4))
+      [encode_lookup_table];
+    group[2] = (((data_offset[1] << 2) & 0x3c) | (data_offset[2] >> 6))
+      [encode_lookup_table];
+    group[3] = (data_offset[2] & 0x3f)
+      [encode_lookup_table];
     memcpy(encoding_buf_offset, group, 4);
     encoding_buf_offset += 4;
     data_offset += 3;
@@ -54,7 +56,7 @@ int b64_encode(const unsigned char *data, const size_t data_len,
   if (data_out_ptr == data_offset + 1) {
     encoding_buf_offset[1] =
       ((data_offset[0] << 4) & 0x30)[encode_lookup_table];
-    memset(encoding_buf_offset + 2, '=', 2);
+    encoding_buf_offset[2] = encoding_buf_offset[3] = '=';
     return 0;
   }
   encoding_buf_offset[1] =
