@@ -90,7 +90,7 @@ TEST_F(TestGetDecodeLen, NormalTests) {
   for (std::vector<TestCase *>::const_iterator it = normal_test_cases.begin();
        it != normal_test_cases.end(); it++) {
     tc = *it;
-    status = b64_get_decode_len(tc->b64_str, &actual_decode_len);
+    status = b64_get_decoding_len(tc->b64_str, &actual_decode_len);
     if (status) {
       FAIL();
     }
@@ -101,11 +101,11 @@ TEST_F(TestGetDecodeLen, NormalTests) {
 TEST_F(TestGetDecodeLen, NullArgsTests) {
   std::string decode_str("Zm9vYmFy");
   size_t decode_len;
-  int status = b64_get_decode_len(NULL, &decode_len);
+  int status = b64_get_decoding_len(NULL, &decode_len);
   if (0 == status) FAIL();
-  status = b64_get_decode_len(decode_str.c_str(), NULL);
+  status = b64_get_decoding_len(decode_str.c_str(), NULL);
   if (0 == status) FAIL();
-  status = b64_get_decode_len(NULL, NULL);
+  status = b64_get_decoding_len(NULL, NULL);
   if (0 == status) FAIL();
 }
 
@@ -116,7 +116,7 @@ TEST_F(TestGetDecodeLen, InvalidTests) {
   for (std::vector<TestCase *>::const_iterator it = invalid_test_cases.begin();
        it != invalid_test_cases.end(); it++) {
     tc = *it;
-    status = b64_get_decode_len(tc->b64_str, &actual_decode_len);
+    status = b64_get_decoding_len(tc->b64_str, &actual_decode_len);
     if (0 == status) {
       FAIL();
     }
@@ -131,7 +131,7 @@ TEST_F(TestGetDecodeLen, InvalidButPassingTests) {
            invalid_but_passing_test_cases.begin();
        it != invalid_but_passing_test_cases.end(); it++) {
     tc = *it;
-    status = b64_get_decode_len(tc->b64_str, &actual_decode_len);
+    status = b64_get_decoding_len(tc->b64_str, &actual_decode_len);
     if (0 != status) {
       FAIL();
     }
@@ -231,7 +231,7 @@ TEST_F(TestDecode, NormalTests) {
   for (std::vector<TestCase *>::const_iterator it = normal_test_cases.begin();
        it != normal_test_cases.end(); it++) {
     tc = *it;
-    status = b64_get_decode_len(tc->b64_str, &decode_buf_len);
+    status = b64_get_decoding_len(tc->b64_str, &decode_buf_len);
     if (0 != status) {
       FAIL();
     }
@@ -267,4 +267,97 @@ TEST_F(TestDecode, NullArgsTests) {
   status = b64_decode(NULL, NULL, NULL);
   EXPECT_NE(0, status);
   free(decoded_buf);
+}
+
+TestIsValid::TestCase::TestCase(std::string b64_str) {
+  size_t b64_str_len = b64_str.length();
+  this->b64_str = (char *)malloc(b64_str_len + 1);
+  if (!this->b64_str) {
+    throw new std::runtime_error("Malloc failed");
+  }
+  memcpy(this->b64_str, b64_str.c_str(), b64_str_len);
+  this->b64_str[b64_str_len] = '\0';
+}
+
+TestIsValid::TestCase::TestCase::~TestCase() { free(b64_str); }
+
+void TestIsValid::AddValidTestCases() {
+  TestCase *tc;
+  tc = new TestCase("Zm9vYmFy");
+  valid_test_cases.push_back(tc);
+  tc = new TestCase("Zm9vYmE=");
+  valid_test_cases.push_back(tc);
+  tc = new TestCase("Zm9vYg==");
+  valid_test_cases.push_back(tc);
+  tc = new TestCase("Zm9v");
+  valid_test_cases.push_back(tc);
+  tc = new TestCase("Zm8=");
+  valid_test_cases.push_back(tc);
+  tc = new TestCase("Zg==");
+  valid_test_cases.push_back(tc);
+  tc = new TestCase("");
+  valid_test_cases.push_back(tc);
+}
+
+void TestIsValid::AddInvalidTestCases() {
+  TestCase *tc;
+  tc = new TestCase("Zm9vYmF");
+  invalid_test_cases.push_back(tc);
+  tc = new TestCase("Zm9vY===");
+  invalid_test_cases.push_back(tc);
+  tc = new TestCase("==9vYmFy");
+  invalid_test_cases.push_back(tc);
+  tc = new TestCase("Zm9vYg=");
+  invalid_test_cases.push_back(tc);
+}
+
+void TestIsValid::ReleaseTestCasesVec(
+    std::vector<TestIsValid::TestCase *> test_cases) {
+  std::vector<TestCase *>::iterator test_cases_iterator;
+  for (test_cases_iterator = test_cases.begin();
+       test_cases_iterator != test_cases.end(); test_cases_iterator++) {
+    delete (*test_cases_iterator);
+  }
+}
+
+void TestIsValid::SetUp() {
+  TestIsValid::AddValidTestCases();
+  TestIsValid::AddInvalidTestCases();
+}
+
+void TestIsValid::TearDown() {
+  ReleaseTestCasesVec(valid_test_cases);
+  ReleaseTestCasesVec(invalid_test_cases);
+}
+
+TEST_F(TestIsValid, ValidTests) {
+  TestCase *tc;
+  int is_valid;
+  size_t decode_buf_len;
+  size_t actual_decode_len;
+  for (std::vector<TestCase *>::const_iterator it = valid_test_cases.begin();
+       it != valid_test_cases.end(); it++) {
+    tc = *it;
+    is_valid = b64_is_valid(tc->b64_str);
+    EXPECT_NE(0, is_valid);
+  }
+}
+
+TEST_F(TestIsValid, InvalidTests) {
+  TestCase *tc;
+  int is_valid;
+  size_t decode_buf_len;
+  size_t actual_decode_len;
+  for (std::vector<TestCase *>::const_iterator it = invalid_test_cases.begin();
+       it != invalid_test_cases.end(); it++) {
+    tc = *it;
+    is_valid = b64_is_valid(tc->b64_str);
+    EXPECT_EQ(0, is_valid);
+  }
+}
+
+TEST_F(TestIsValid, NullArgsTests) {
+  TestCase *tc;
+  int is_valid = b64_is_valid(NULL);
+  EXPECT_NE(1, is_valid);
 }
