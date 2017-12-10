@@ -4,6 +4,7 @@ googletest/
 **/bin/
 **/*.log
 code/doc/
+Doxyfile
 
 **/.ycm_extra_conf.py
 **/*.swp
